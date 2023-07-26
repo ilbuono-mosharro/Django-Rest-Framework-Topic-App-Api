@@ -36,14 +36,14 @@ class TopicViewSet(viewsets.ModelViewSet):
             raise PermissionDenied("You do not have permission to perform this action.")
         return super().destroy(request, *args, **kwargs)
 
-    @action(detail=False, methods=['GET'], permission_classes=[IsAuthenticated, IsOwnerUser], url_path="users-topics")
+    @action(detail=False, methods=['GET'], permission_classes=[IsAuthenticated, IsOwnerUser], url_path="user-topics")
     def user_topics(self, request, *args, **kwargs):
         user = request.user
         topics = Topic.objects.filter(starter__id=user.id)
-        serializer = self.get_serializer(topics, many=True)
+        serializer = TopicReadSerializer(topics, many=True)
         return Response(serializer.data)
 
-    @action(detail=True, methods=['put'], permission_classes=[IsAuthenticated], serializer_class=TopicVoteSerializer, url_path="user-upvote")
+    @action(detail=True, methods=['put'], permission_classes=[IsAuthenticated], url_path="user-upvote")
     def up_vote(self, request, pk=None):
         topic = self.get_object()
         if topic.users_upvote.filter(id=request.user.id).exists():
@@ -56,8 +56,7 @@ class TopicViewSet(viewsets.ModelViewSet):
         serializer = TopicVoteSerializer(topic)
         return Response(serializer.data)
 
-    @action(detail=True, methods=['put'], permission_classes=[IsAuthenticated], serializer_class=TopicVoteSerializer,
-            url_path="user-downvote")
+    @action(detail=True, methods=['put'], permission_classes=[IsAuthenticated], url_path="user-downvote")
     def down_vote(self, request, pk=None):
         topic = self.get_object()
         if topic.users_downvote.filter(id=request.user.id).exists():
