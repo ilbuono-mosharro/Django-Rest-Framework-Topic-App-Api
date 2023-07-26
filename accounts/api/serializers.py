@@ -67,3 +67,9 @@ class UserSerializer(serializers.ModelSerializer):
         instance.last_name = validated_data.get('last_name', instance.last_name)
         instance.save()
         return instance
+
+class UserReadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'avatar']
+        read_only_fields = ['first_name', 'last_name', 'avatar']

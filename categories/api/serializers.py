@@ -1,10 +1,9 @@
 from rest_framework import serializers
-from accounts.api.serializers import UserSerializer
 from ..models import Category
 
-class CategorySerializer(serializers.ModelSerializer):
+class CategoryReadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = ['id', 'name', 'slug']
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        fields = ['id', 'name']
+        read_only_fields = ['id', 'name']

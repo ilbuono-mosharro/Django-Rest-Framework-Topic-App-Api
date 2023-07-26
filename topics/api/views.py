@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticate
 from rest_framework.response import Response
 
 from .permissions import IsOwnerUser
-from .serializers import TopicSerializer
+from .serializers import TopicSerializer, TopicReadSerializer, TopicVoteSerializer
 from ..models import Topic
 
 
@@ -13,9 +13,13 @@ class TopicViewSet(viewsets.ModelViewSet):
     """
     A simple ViewSet for viewing and editing topic.
     """
-    queryset = Topic.objects.select_related('starter', 'category').prefetch_related('users_upvote', 'users_downvote').order_by('-created_at')
-    serializer_class = TopicSerializer
+    queryset = Topic.objects.all().order_by('-created_at')
     permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_serializer_class(self):
+        if self.action == "list" or self.action == "retrieve":
+            return TopicReadSerializer
+        return TopicSerializer
 
     def perform_create(self, serializer):
         serializer.save(starter=self.request.user)
@@ -35,11 +39,11 @@ class TopicViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'], permission_classes=[IsAuthenticated, IsOwnerUser], url_path="users-topics")
     def user_topics(self, request, *args, **kwargs):
         user = request.user
-        topics = Topic.objects.filter(starter=user)
+        topics = Topic.objects.filter(starter__id=user.id)
         serializer = self.get_serializer(topics, many=True)
         return Response(serializer.data)
 
-    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated], url_path="user-upvote")
+    @action(detail=True, methods=['put'], permission_classes=[IsAuthenticated], serializer_class=TopicVoteSerializer, url_path="user-upvote")
     def up_vote(self, request, pk=None):
         topic = self.get_object()
         if topic.users_upvote.filter(id=request.user.id).exists():
@@ -49,11 +53,12 @@ class TopicViewSet(viewsets.ModelViewSet):
             if topic.users_downvote.filter(id=request.user.id).exists():
                 topic.users_downvote.remove(request.user)
 
-        serializer = self.get_serializer(topic)
+        serializer = TopicVoteSerializer(topic)
         return Response(serializer.data)
 
-    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated], url_path="user-downvote")
-    def downvote(self, request, pk=None):
+    @action(detail=True, methods=['put'], permission_classes=[IsAuthenticated], serializer_class=TopicVoteSerializer,
+            url_path="user-downvote")
+    def down_vote(self, request, pk=None):
         topic = self.get_object()
         if topic.users_downvote.filter(id=request.user.id).exists():
             topic.users_downvote.remove(request.user)
@@ -61,5 +66,5 @@ class TopicViewSet(viewsets.ModelViewSet):
             topic.users_downvote.add(request.user)
             if topic.users_upvote.filter(id=request.user.id).exists():
                 topic.users_upvote.remove(request.user)
-        serializer = self.get_serializer(topic)
+        serializer = TopicVoteSerializer(topic)
         return Response(serializer.data)
