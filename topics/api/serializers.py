@@ -27,7 +27,7 @@ class TopicSerializer(serializers.ModelSerializer):
     class Meta:
         model = Topic
         fields = ['id', 'starter', 'subject', 'category', 'body']
-        read_only_fields = ['id', 'starter', 'category']
+        read_only_fields = ['id', 'starter']
 
     def create(self, validated_data):
         starter = validated_data.pop('starter')

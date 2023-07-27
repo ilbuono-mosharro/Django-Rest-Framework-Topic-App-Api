@@ -13,7 +13,9 @@ class TopicViewSet(viewsets.ModelViewSet):
     """
     A simple ViewSet for viewing and editing topic.
     """
-    queryset = Topic.objects.all().order_by('-created_at')
+    queryset = Topic.objects.select_related('starter', 'category').prefetch_related(
+        'users_upvote', 'users_downvote'
+    ).order_by('-created_at')
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_serializer_class(self):

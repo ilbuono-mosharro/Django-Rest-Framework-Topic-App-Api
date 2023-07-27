@@ -6,3 +6,7 @@ superuser: user2
 password: aa123456789
 superuser: user3
 password: aa123456789
+superuser: user4
+password: aa123456789
+superuser: user5
+password: aa123456789

@@ -4,19 +4,12 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
-class UserSerializer(serializers.ModelSerializer):
-    """
-    It includes simple default implementations of .create() and .update()
-    """
+class UserSignUpSerializer(serializers.ModelSerializer):
     password1 = serializers.CharField(write_only=True, style={"input_type": "password"}, )
-
     class Meta:
         model = User
         fields = ['avatar', 'username', 'first_name', 'last_name', 'email', 'password', 'password1']
         extra_kwargs = {
-            'first_name': {'required': True},
-            'last_name': {'required': True},
-            'email': {'required': True},
             'password': {'write_only': True, 'style': {'input_type': 'password'}},
         }
 
@@ -63,6 +56,21 @@ class UserSerializer(serializers.ModelSerializer):
         """
         We are overriding the update method, to choose which fields we want to update.
         """
+        instance.first_name = validated_data.get('first_name', instance.first_name)
+        instance.last_name = validated_data.get('last_name', instance.last_name)
+        instance.save()
+        return instance
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['avatar', 'username', 'first_name', 'last_name', 'email']
+        read_only_fields = ['username', 'email']
+
+
+    def update(self, instance, validated_data):
+        instance.avatar = validated_data.get('avatar', instance.avatar)
         instance.first_name = validated_data.get('first_name', instance.first_name)
         instance.last_name = validated_data.get('last_name', instance.last_name)
         instance.save()
