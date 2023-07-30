@@ -1,7 +1,7 @@
-from rest_framework import permissions
+from rest_framework.permissions import BasePermission
 
 
-class IsOwner(permissions.BasePermission):
+class IsOwner(BasePermission):
     """
     Custom permission to only allow owners of an object to edit/delete/read it.
     """
