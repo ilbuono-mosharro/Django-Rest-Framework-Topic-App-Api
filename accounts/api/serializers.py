@@ -6,12 +6,17 @@ User = get_user_model()
 
 class UserSignUpSerializer(serializers.ModelSerializer):
     password1 = serializers.CharField(write_only=True, style={"input_type": "password"}, )
+    first_name = serializers.CharField(max_length=150, required=True)
+    last_name = serializers.CharField(max_length=150, required=True)
+    email = serializers.EmailField(required=True)
+
     class Meta:
         model = User
         fields = ['avatar', 'username', 'first_name', 'last_name', 'email', 'password', 'password1']
         extra_kwargs = {
             'password': {'write_only': True, 'style': {'input_type': 'password'}},
         }
+
 
     def validate_username(self, attrs):
         """
