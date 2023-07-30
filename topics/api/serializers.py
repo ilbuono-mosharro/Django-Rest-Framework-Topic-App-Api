@@ -1,12 +1,12 @@
 from rest_framework import serializers
+
 from accounts.api.serializers import UserReadSerializer
-from categories.api.serializers import CategoryReadSerializer
 from ..models import Topic
 
 
 class TopicReadSerializer(serializers.ModelSerializer):
     starter = UserReadSerializer(read_only=True)
-    category = CategoryReadSerializer(read_only=True)
+    category = serializers.CharField(source='category.name')
     upvote = serializers.SerializerMethodField()
     downvote = serializers.SerializerMethodField()
     created_at = serializers.DateTimeField(format='%d %b %Y')
@@ -30,10 +30,10 @@ class TopicSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'starter']
 
     def create(self, validated_data):
-        starter = validated_data.pop('starter')
-        subject = validated_data.pop('subject')
-        body = validated_data.pop('body')
-        category = validated_data.pop('category')
+        starter = validated_data['starter']
+        subject = validated_data['subject']
+        body = validated_data['body']
+        category = validated_data['category']
         return Topic.objects.create(starter=starter, subject=subject, body=body, category=category)
 
     def update(self, instance, validated_data):

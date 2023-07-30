@@ -1,7 +1,7 @@
 from django.core.exceptions import PermissionDenied
 from rest_framework import viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .permissions import IsOwnerUser
@@ -16,7 +16,6 @@ class TopicViewSet(viewsets.ModelViewSet):
     queryset = Topic.objects.select_related('starter', 'category').prefetch_related(
         'users_upvote', 'users_downvote'
     ).order_by('-created_at')
-    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_serializer_class(self):
         if self.action == "list" or self.action == "retrieve":
@@ -41,7 +40,11 @@ class TopicViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'], permission_classes=[IsAuthenticated, IsOwnerUser], url_path="user-topics")
     def user_topics(self, request, *args, **kwargs):
         user = request.user
-        topics = Topic.objects.filter(starter__id=user.id)
+        topics = Topic.objects.filter(starter__id=user.id).select_related(
+            'starter', 'category'
+        ).prefetch_related(
+            'users_upvote', 'users_downvote'
+        ).order_by('-created_at')
         serializer = TopicReadSerializer(topics, many=True)
         return Response(serializer.data)
 
