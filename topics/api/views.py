@@ -3,10 +3,11 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-
+from django_filters import rest_framework as filters
 from .permissions import IsOwnerUser
 from .serializers import TopicSerializer, TopicReadSerializer, TopicVoteSerializer
 from ..models import Topic
+from .d_filters import MyFilters
 
 
 class TopicViewSet(viewsets.ModelViewSet):
@@ -16,6 +17,26 @@ class TopicViewSet(viewsets.ModelViewSet):
     queryset = Topic.objects.select_related('starter', 'category').prefetch_related(
         'users_upvote', 'users_downvote'
     ).order_by('-created_at')
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = MyFilters
+
+    """
+     Search and filter based on the Django admin's search functionality.
+     from rest_framework import filters
+     filter_backends = [filters.SearchFilter, filters.OrderingFilter] 
+     search_fields = ['subject'] 
+     ordering_fields = ['created_at']
+     ordering = ['created_at']..0
+    """
+
+    # Simple search filter
+    # def get_queryset(self):
+    #     queryset = self.queryset
+    #     search = self.request.query_params.get('search')
+    #     if search is not None:
+    #         queryset = queryset.filter(subject__startswith=search)
+    #     return queryset
+
 
     def get_serializer_class(self):
         if self.action == "list" or self.action == "retrieve":
